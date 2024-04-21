@@ -22,7 +22,7 @@
 
     #container {
       width: 300px;
-      background-color: rgba(255, 255, 255, 0.8); /* Transparent background to blend with the sky */
+      background-color: rgba(255, 255, 255, 0.8);
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
       padding: 20px;
@@ -56,18 +56,18 @@
 <body>
   <div id="demo" class="wrapp">
     <div id="container">
-      <h1>YouTube Downloader</h1>
-      <form id="downloadForm">
-        <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter YouTube Video URL" required>
-        <button type="submit">Download Video</button>
-      </form>
+    <h1>YouTube Downloader</h1>
+    <form id="downloadForm">
+      <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter YouTube Video URL" required>
+      <button type="submit">Download Video</button>
+    </form>
 
-      <div id="progressBar">
-        <div id="progressBarFill"></div>
-      </div>
-
-      <div id="downloadLink"></div>
+    <div id="progressBar">
+      <div id="progressBarFill"></div>
     </div>
+
+    <div id="downloadLink"></div>
+  </div>
   </div>
 
   <script src="https://assets.website-files.com/5d971c4989c88c0b4cca55cd/js/webflow.1bc56dc86.js" type="text/javascript"></script>
@@ -92,42 +92,30 @@
 
       progressBarFill.style.width = '0%'; // Reset progress bar
 
-      const response = await fetch(`/video/${encodeURIComponent(videoUrl)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        // You can add additional options or data here if needed
-      });
+      try {
+        const response = await fetch('/video/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ videoUrl })
+        });
 
-      const reader = response.body.getReader();
-      const contentLength = +response.headers.get('Content-Length');
-
-      let receivedLength = 0; // The total bytes received
-      let chunks = []; // The chunks of the video file
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
+        if (!response.ok) {
+          throw new Error('Failed to download video');
         }
 
-        chunks.push(value);
-        receivedLength += value.length;
+        const blob = await response.blob();
 
-        const progress = receivedLength / contentLength;
-        progressBarFill.style.width = Math.floor(progress * 100) + '%';
+        const downloadLink = document.createElement('a');
+        downloadLink.href = window.URL.createObjectURL(blob);
+        downloadLink.download = 'video.mp4';
+        downloadLink.textContent = 'Download Video';
+        document.getElementById('downloadLink').innerHTML = '';
+        document.getElementById('downloadLink').appendChild(downloadLink);
+      } catch (error) {
+        console.error(error);
       }
-
-      const blob = new Blob(chunks);
-
-      const downloadLink = document.createElement('a');
-      downloadLink.href = window.URL.createObjectURL(blob);
-      downloadLink.download = 'video.mp4'; // You can set the filename here
-      downloadLink.textContent = 'Download Video';
-      document.getElementById('downloadLink').innerHTML = '';
-      document.getElementById('downloadLink').appendChild(downloadLink);
     });
   </script>
 </body>
