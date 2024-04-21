@@ -67,20 +67,67 @@
     </div>
 
     <div id="downloadLink"></div>
-  </div>
     </div>
-    <script src="https://assets.website-files.com/5d971c4989c88c0b4cca55cd/js/webflow.1bc56dc86.js" type="text/javascript"></script>
-    <script src="https://assets.website-files.com/5d932bf11608325eac058a21/5d932d68160832c7c0059c91_three.r92.min.txt"></script>
-<script src="https://assets.website-files.com/5d932bf11608325eac058a21/5d93301de2a4d93ad0b1fe54_vanta.clouds.min.txt"></script>
-<script>
-VANTA.CLOUDS({
-  el: "#demo",
-  skyColor: 0x5eb7d9,
-  cloudColor: 0xb1c2dc,
-  cloudShadowColor: 0x1b3a57,
-  sunColor: 0xff9c21,
-  sunGlareColor: 0xfa6331,
-  sunlightColor: 0xfa9531
-})
-</script>
-</body></html>
+      </div>
+      <script src="https://assets.website-files.com/5d971c4989c88c0b4cca55cd/js/webflow.1bc56dc86.js" type="text/javascript"></script>
+      <script src="https://assets.website-files.com/5d932bf11608325eac058a21/5d932d68160832c7c0059c91_three.r92.min.txt"></script>
+  <script src="https://assets.website-files.com/5d932bf11608325eac058a21/5d93301de2a4d93ad0b1fe54_vanta.clouds.min.txt"></script>
+  <script>
+  VANTA.CLOUDS({
+    el: "#demo",
+    skyColor: 0x5eb7d9,
+    cloudColor: 0xb1c2dc,
+    cloudShadowColor: 0x1b3a57,
+    sunColor: 0xff9c21,
+    sunGlareColor: 0xfa6331,
+    sunlightColor: 0xfa9531
+  });
+  </script>
+  <script>
+    document.getElementById('downloadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      const progressBarFill = document.getElementById('progressBarFill');
+
+      progressBarFill.style.width = '0%'; // Reset progress bar
+
+      const response = await fetch(`/video/${encodeURIComponent(videoUrl)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // You can add additional options or data here if needed
+      });
+
+      const reader = response.body.getReader();
+      const contentLength = +response.headers.get('Content-Length');
+
+      let receivedLength = 0; // The total bytes received
+      let chunks = []; // The chunks of the video file
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        chunks.push(value);
+        receivedLength += value.length;
+
+        const progress = receivedLength / contentLength;
+        progressBarFill.style.width = Math.floor(progress * 100) + '%';
+      }
+
+      const blob = new Blob(chunks);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = window.URL.createObjectURL(blob);
+      downloadLink.download = 'video.mp4'; // You can set the filename here
+      downloadLink.textContent = 'Download Video';
+      document.getElementById('downloadLink').innerHTML = '';
+      document.getElementById('downloadLink').appendChild(downloadLink);
+    });
+  </script>
+</body>
+</html>
