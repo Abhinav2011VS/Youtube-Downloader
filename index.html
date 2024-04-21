@@ -116,21 +116,7 @@
     });
   </script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBAh8yHqh8ycQprWrwvIAXZAR11NMRQY2k",
-      authDomain: "PROJECT_ID.firebaseapp.com",
-      projectId: "PROJECT_ID",
-      storageBucket: "PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID",
-      measurementId: "G-MEASUREMENT_ID",
-    };
-
-    firebase.initializeApp(firebaseConfig);
-
     document.getElementById('downloadForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const videoUrl = document.getElementById('videoUrl').value;
@@ -138,32 +124,36 @@
       const progressText = document.getElementById('progressText');
 
       progressBarFill.style.width = '0%'; // Reset progress bar
-      progressText.textContent = '0%';
 
       try {
-        const downloadTask = firebase.storage().refFromURL(videoUrl).getDownloadURL();
+        const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoUrl}&key=AIzaSyBAh8yHqh8ycQprWrwvIAXZAR11NMRQY2k`, {
+          method: 'GET'
+        });
 
-        downloadTask.on('state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            progressBarFill.style.width = `${progress}%`;
-            progressText.textContent = `${Math.floor(progress)}%`;
-          },
-          (error) => {
-            console.error(error);
-            alert('Failed to download video. Please try again.');
-          },
-          () => {
-            downloadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-              const downloadLink = document.createElement('a');
-              downloadLink.href = downloadURL;
-              downloadLink.download = 'video.mp4';
-              downloadLink.textContent = 'Download Video';
-              document.getElementById('downloadLink').innerHTML = '';
-              document.getElementById('downloadLink').appendChild(downloadLink);
-            });
-          }
-        );
+        if (!response.ok) {
+          throw new Error('Failed to download video');
+        }
+
+        const contentLength = +response.headers.get('Content-Length');
+        const reader = response.body.getReader();
+        let receivedLength = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          receivedLength += value.length;
+          progressBarFill.style.width = `${(receivedLength / contentLength) * 100}%`;
+          progressText.textContent = `${Math.floor((receivedLength / contentLength) * 100)}%`;
+        }
+
+        const blob = await response.blob();
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = window.URL.createObjectURL(blob);
+        downloadLink.download = 'video.mp4';
+        downloadLink.textContent = 'Download Video';
+        document.getElementById('downloadLink').innerHTML = '';
+        document.getElementById('downloadLink').appendChild(downloadLink);
       } catch (error) {
         console.error(error);
         alert('Failed to download video. Please try again.');
