@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video/Audio Downloader</title>
+</head>
+<body>
+  <h1>YouTube Downloader</h1>
+  <form id="downloadForm">
+    <label for="videoUrl">Enter YouTube Video URL:</label>
+    <input type="text" id="videoUrl" name="videoUrl" required>
+    <button type="submit">Download Video</button>
+  </form>
+
+  <div id="downloadLink"></div>
+
+  <script>
+    document.getElementById('downloadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      const response = await fetch(`/video/${encodeURIComponent(videoUrl)}`);
+      const data = await response.text();
+      document.getElementById('downloadLink').innerHTML = data;
+    });
+  </script>
+</body>
+</html>
