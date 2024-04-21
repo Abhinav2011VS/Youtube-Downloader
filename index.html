@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Video/Audio Downloader</title>
+  <title>YouTube Downloader</title>
 </head>
 <body>
   <h1>YouTube Downloader</h1>
-  <form id="downloadForm">
+  <form id="downloadForm" action="https://yt-vidaud-downloader-downloader.abhinav2011vs.workers.dev/video/" method="POST">
     <label for="videoUrl">Enter YouTube Video URL:</label>
     <input type="text" id="videoUrl" name="videoUrl" required>
     <button type="submit">Download Video</button>
@@ -19,7 +19,7 @@
     document.getElementById('downloadForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const videoUrl = document.getElementById('videoUrl').value;
-      const response = await fetch(`/video/${encodeURIComponent(videoUrl)}`);
+      const response = await fetch(`https://yt-vidaud-downloader-downloader.abhinav2011vs.workers.dev/video/?videoUrl=${encodeURIComponent(videoUrl)}`);
       const data = await response.text();
       document.getElementById('downloadLink').innerHTML = data;
     });
